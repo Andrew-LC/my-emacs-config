@@ -1,7 +1,5 @@
 * My Emacs Config
 
-[[./images/my-emacs.png]]
-
 ** Basic changes
 
 #+begin_src emacs-lisp :tangle yes
