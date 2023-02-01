@@ -16,10 +16,7 @@
 
 (straight-use-package 'use-package)
 
-
 (cd "c://Users//Andrew")
-
-
 (setq inhibit-startup-message t)
 (scroll-bar-mode -1)
 (tooltip-mode -1)
@@ -39,71 +36,90 @@
                 shell-mode-hook
                 treemacs-mode-hook
                 eshell-mode-hook
-		dired-mode-hook))
+                dired-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (set-face-attribute 'default nil :font "MonoLisa Nerd Font Mono" :height 115)
 
-(defun export-md ()
-  "Export org to md"
-  (interactive)
-  (message "Export it !"))
-
-(use-package hl-line
-  :straight t
-  :config
-  (hl-line-mode t))
-
-(use-package highlight-indentation
-  :straight t)
-
+(set-frame-parameter (selected-frame) 'alpha '(96 . 96))
+(add-to-list 'default-frame-alist '(alpha . (90 . 90)))
 
 (use-package dashboard
-  :straight t
-  :ensure t
-  :init
-  (setq dashboard-center-content t)
-  (setq dashboard-startup-banner "~/.emacs.d/logo.png")
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  (setq dashboard-set-navigator t)
-  (setq dashboard-items '((recents  . 5)))
-  :config
-  (dashboard-setup-startup-hook))
+    :straight t
+    :ensure t
+    :init
+    (setq dashboard-center-content t)
+    (setq dashboard-startup-banner "~/.emacs.d/logo.png")
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
+    (setq dashboard-set-navigator t)
+    (setq dashboard-items '((recents  . 5)))
+    :config
+    (dashboard-setup-startup-hook))
 
 (use-package doom-themes
-  :straight t
-  :ensure t
-  :config
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-tomorrow-night t)
+    :straight t
+    :ensure t
+    :config
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-tomorrow-night t)
 
 
-  (doom-themes-visual-bell-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
-
+    (doom-themes-visual-bell-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
 
 (use-package doom-modeline 
-  :straight t
-  :config (doom-modeline-mode 1))
+    :straight t
+    :config (doom-modeline-mode 1))
 
-(use-package all-the-icons
-  :straight t
-  :if (display-graphic-p))
+  (use-package all-the-icons
+    :straight t
+    :if (display-graphic-p))
 
+(use-package hl-line
+   :straight t
+   :config
+   (hl-line-mode t))
+
+(use-package highlight-indentation
+    :straight t)
 
 (use-package evil
+    :straight t
+    :init
+    (setq evil-want-integration t)
+    :config
+    (evil-mode 1)
+    (evil-set-initial-state 'messages-buffer-mode 'normal)
+    (evil-set-initial-state 'dashboard-mode 'normal))
+
+(use-package general
   :straight t
-  :init
-  (setq evil-want-integration t)
+  :after evil
   :config
-  (evil-mode 1)
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
+  (general-create-definer onepiece/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC")
+
+  (onepiece/leader-keys
+    "t"  '(:ignore t :which-key "toggles")
+    "tt" '(load-theme :which-key "choose theme")
+    "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))
+    "i" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/init.el")))
+    "eb" '(eval-buffer :which-key "Evaluate Buffer")
+    "v" '(split-window-right :which-key "Split Window Vertically")
+    "." '(find-file :which-key "Search files")
+    "b" '(consult-buffer :which-key "Buffer Switch")
+    "o" '(lambda () (interactive) (split-window-below) (other-window 1) (dired-jump))
+    "kb" '(kill-buffer :which-key "Kill Buffer")
+    "pf" '(projectile-find-file :which-key "Find file using projectile")
+    "ff" '(consult-find :which-key "Find file")
+    "j" '(emmet-expand-line :which-key "Emmet Expand")))
 
 (use-package vertico
   :straight t
@@ -144,157 +160,112 @@
   :straight t
   :after vertico)
 
-(use-package general
-  :straight t
-  :after evil
-  :config
-  (general-create-definer onepiece/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "C-SPC")
-
-  (onepiece/leader-keys
-    "t"  '(:ignore t :which-key "toggles")
-    "tt" '(load-theme :which-key "choose theme")
-    "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))
-    "i" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/init.el")))
-    "eb" '(eval-buffer :which-key "Evaluate Buffer")
-    "v" '(split-window-right :which-key "Split Window Vertically")
-    "." '(find-file :which-key "Search files")
-    "b" '(consult-buffer :which-key "Buffer Switch")
-    "o" '(lambda () (interactive) (split-window-below) (other-window 1) (dired-jump))
-    "kb" '(kill-buffer :which-key "Kill Buffer")
-    "pf" '(projectile-find-file :which-key "Find file using projectile")
-    "ff" '(consult-find :which-key "Find file")
-    "j" '(emmet-expand-line :which-key "Emmet Expand")))
-
-
-(use-package posframe
-  :straight t)
+(straight-use-package 'posframe)
+(add-to-list 'load-path "~/.emacs.d/straight/build/posframe")
 
 (use-package markdown-mode 
-  :straight t)
+    :straight t)
 
 (use-package yasnippet 
-  :straight t
-  :config
-  (yas-global-mode 1))
+    :straight t
+    :config
+    (yas-global-mode 1))
 
-(use-package yasnippet-snippets
-  :straight t)
+  (use-package yasnippet-snippets
+    :straight t)
 
 (add-to-list 'load-path "~/.emacs.d/lsp-bridge")
 
-(require 'lsp-bridge)
-(global-lsp-bridge-mode)
-(setq lsp-bridge-enable-diagnostics t)
-(setq lsp-bridge-enable-hover-diagnostic t)
+  (require 'lsp-bridge)
+  (global-lsp-bridge-mode)
+  (setq lsp-bridge-enable-diagnostics t)
+  (setq lsp-bridge-enable-hover-diagnostic t)
 
 (use-package flycheck
-  :straight t)
+    :straight t
+    :after lsp-bridge)
 
 (use-package typescript-mode
-  :straight t
-  :mode "\\.tsx\\'"
-  :config
-  (setq typescript-indent-level 2))
+   :straight t
+   :mode "\\.tsx\\'"
+   :config
+   (setq typescript-indent-level 2))
 
-(use-package tide
-  :straight t
-  :ensure t
-  :after (typescript-mode  flycheck)
-  :hook ((typescript-mode . tide-setup)
-         (typescript-mode . tide-hl-identifier-mode)
-         (before-save . tide-format-before-save)))
+ (use-package tide
+   :straight t
+   :ensure t
+   :after (typescript-mode  flycheck)
+   :hook ((typescript-mode . tide-setup)
+          (typescript-mode . tide-hl-identifier-mode)
+          (before-save . tide-format-before-save)))
 
-(defun setup-tide-mode ()
-  (interactive)
-  (tide-setup)
-  (flycheck-mode +1)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
-  (eldoc-mode +1)
-  (tide-hl-identifier-mode +1))
+ (defun setup-tide-mode ()
+   (interactive)
+   (tide-setup)
+   (flycheck-mode +1)
+   (setq flycheck-check-syntax-automatically '(save mode-enabled))
+   (eldoc-mode +1)
+   (tide-hl-identifier-mode +1))
 
 (use-package web-mode
-  :straight t
-  :config
-  (setq web-mode-markup-indent-offset 2))
+   :straight t
+   :config
+   (setq web-mode-markup-indent-offset 2))
 
-(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
-(add-hook 'web-mode-hook
-          (lambda ()
-            (when (string-equal "tsx" (file-name-extension buffer-file-name))
-              (setup-tide-mode))))
-;; enable typescript-tslint checker
-(flycheck-add-mode 'typescript-tslint 'web-mode)
-
+ (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+ (add-hook 'web-mode-hook
+           (lambda ()
+             (when (string-equal "tsx" (file-name-extension buffer-file-name))
+               (setup-tide-mode))))
+ ;; enable typescript-tslint checker
+ (flycheck-add-mode 'typescript-tslint 'web-mode)
 
 (defun efs/org-font-setup ()
-  ;; Replace list hyphen with dot
-  (font-lock-add-keywords 'org-mode
-                          '(("^ *\\([-]\\) "
-                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) ">"))))))
+    ;; Replace list hyphen with dot
+    (font-lock-add-keywords 'org-mode
+                            '(("^ *\\([-]\\) "
+                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) ">"))))))
 
-  ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.5)
-                  (org-level-2 . 1)
-                  (org-level-3 . 1.15)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "MonoLisa Nerd Font Mono" :weight 'medium :height 140))
+    ;; Set faces for heading levels
+    (dolist (face '((org-level-1 . 1.5)
+                    (org-level-2 . 1)
+                    (org-level-3 . 1.15)
+                    (org-level-4 . 1.0)
+                    (org-level-5 . 1.1)
+                    (org-level-6 . 1.1)
+                    (org-level-7 . 1.1)
+                    (org-level-8 . 1.1)))
+      (set-face-attribute (car face) nil :font "MonoLisa Nerd Font Mono" :weight 'medium :height 140))
 
-  (setq
-   org-insert-heading-respect-content t
-   org-tags-column 0))
-
+    (setq
+     org-insert-heading-respect-content t
+     org-tags-column 0))
 
 (defun efs/org-mode-setup ()
-  (set-fringe-mode 1)
-  (visual-line-mode 1)
-  (org-indent-mode 1)
-  (org-modern-mode 1))
+    (set-fringe-mode 1)
+    (visual-line-mode 1)
+    (org-indent-mode 1)
+    (org-modern-mode 1))
 
-(straight-use-package 'org)
+  (straight-use-package 'org)
 
 (use-package org
-  :straight t
-  :hook (org-mode . efs/org-mode-setup)
-  :config
-  (setq org-default-notes-files (concat org-directory "c://Users//Andrew//Documents//orgnotes//tasks.org"))
-  (efs/org-font-setup))
+    :straight t
+    :hook (org-mode . efs/org-mode-setup)
+    :config
+    (setq org-default-notes-files (concat org-directory "c://Users//Andrew//Documents//orgnotes//tasks.org"))
+    (efs/org-font-setup))
 
 (use-package org-modern
-  :straight t)
+    :straight t)
 
 (use-package org-bullets
-  :straight t
-  :hook (org-mode . org-bullets-mode))
+    :straight t
+    :hook (org-mode . org-bullets-mode))
 
 (use-package olivetti
-  :straight t
-  :hook (org-mode . olivetti-mode))
-
-(use-package org-roam
-  :straight t
-  :ensure t
-  :custom
-  (org-roam-directory (file-truename "c://Users//Andrew//Documents//orgnotes"))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n g" . org-roam-graph)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n c" . org-roam-capture)
-         ;; Dailies
-         ("C-c n j" . org-roam-dailies-capture-today))
-  :config
-  ;; If you're using a vertical completion framework, you might want a more informative completion interface
-  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
-  (org-roam-db-autosync-mode)
-  ;; If using org-roam-protocol
-  (require 'org-roam-protocol))
+    :straight t
+    :hook (org-mode . olivetti-mode))
 
 (use-package emacsql
   :straight t)
@@ -317,19 +288,21 @@
 (use-package f
   :straight t)
 
-(set-frame-parameter (selected-frame) 'alpha '(96 . 96))
-(add-to-list 'default-frame-alist '(alpha . (90 . 90)))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("3113355ca46119c948d296f4a24ee0aef5e6f325534ae7a7ed578fcf22a965bb" "9724dd370de9086cc2ab6b0c6a563d6b4967d0262187fd6d712e8ce413eea7cd" "c717c92dbdca23db724340151f56269786b9e6332cf3a0cbecfbd3fdf9c733b0" "e51135e9c0c24b5498b610b0388ccda5a6664f81960e451f0787a9637d05ee74" "cea3725cdcde5e5159e32a35b1a09f106e9214038908ab5fdaf0a0e0548e573a" "28d87ee3d89c7625702cb2596f897528d7f59cc580be5c401757493521b692fc" "24985b6c192f0f0c85ef003c051e4b55e6593e722ab9146703ee8564bf3ef5f0" "356edba4a19df2895d3b340b17a039deb0147209a5f0f281897892391dd02d86" "533b196299699134045d2e263fa3003624bff0eb899c590665577c4b74997c83" "c282a528137220d5f71c84ca68eb8bd87b3ccb3656434b20ad600a380f9f198c" "ed0fab80b2281894fbe53fb8ba3dad24a2dbbf6be1ddd19f76c97f21cf4c5ac2" default)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(use-package org-roam
+   :straight t
+   :ensure t
+   :custom
+   (org-roam-directory (file-truename "c://Users//Andrew//Documents//orgnotes"))
+   :bind (("C-c n l" . org-roam-buffer-toggle)
+          ("C-c n f" . org-roam-node-find)
+          ("C-c n g" . org-roam-graph)
+          ("C-c n i" . org-roam-node-insert)
+          ("C-c n c" . org-roam-capture)
+          ;; Dailies
+          ("C-c n j" . org-roam-dailies-capture-today))
+   :config
+   ;; If you're using a vertical completion framework, you might want a more informative completion interface
+   (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+   (org-roam-db-autosync-mode)
+   ;; If using org-roam-protocol
+   (require 'org-roam-protocol))

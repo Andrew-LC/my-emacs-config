@@ -1,29 +1,27 @@
-
 * My Emacs Config
 
 [[./images/my-emacs.png]]
 
 ** Basic changes
-*** Bootstraping straight
 
 #+begin_src emacs-lisp :tangle yes
 (setq package-enable-at-startup nil)
 
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-version 6))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
 
-  (straight-use-package 'use-package)
+(straight-use-package 'use-package)
 #+end_src
 
 *** Font, UI, and directory changes
@@ -211,22 +209,11 @@
 #+end_src
 
 ** Emacs LSP (lsp-bridge) & progamming 
-*** Lsp Bridge
-
-#+begin_src emacs-lisp :tangle yes
-(add-to-list 'load-path "~/.emacs.d/lsp-bridge")
-
-  (require 'lsp-bridge)
-  (global-lsp-bridge-mode)
-  (setq lsp-bridge-enable-diagnostics t)
-  (setq lsp-bridge-enable-hover-diagnostic t)
-#+end_src
-
 *** Posframe
 
 #+begin_src emacs-lisp :tangle yes
-(use-package posframe
-    :straight t)
+(straight-use-package 'posframe)
+(add-to-list 'load-path "~/.emacs.d/straight/build/posframe")
 #+end_src
 
 *** Markdown Mode
@@ -246,6 +233,16 @@
 
   (use-package yasnippet-snippets
     :straight t)
+#+end_src
+
+
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'load-path "~/.emacs.d/lsp-bridge")
+
+  (require 'lsp-bridge)
+  (global-lsp-bridge-mode)
+  (setq lsp-bridge-enable-diagnostics t)
+  (setq lsp-bridge-enable-hover-diagnostic t)
 #+end_src
 
 *** Flycheck
@@ -335,19 +332,19 @@
     (visual-line-mode 1)
     (org-indent-mode 1)
     (org-modern-mode 1))
-
-  (straight-use-package 'org)
 #+end_src
 
 *** Org mode initialization
 
 #+begin_src emacs-lisp :tangle yes
-(use-package org
-    :straight t
-    :hook (org-mode . efs/org-mode-setup)
-    :config
-    (setq org-default-notes-files (concat org-directory "c://Users//Andrew//Documents//orgnotes//tasks.org"))
-    (efs/org-font-setup))
+  (straight-use-package 'org)
+  
+  (use-package org
+      :straight t
+      :hook (org-mode . efs/org-mode-setup)
+      :config
+      (setq org-default-notes-files (concat org-directory "c://Users//Andrew//Documents//orgnotes//tasks.org"))
+      (efs/org-font-setup))
 #+end_src
 
 *** Org Modern
@@ -374,7 +371,7 @@
 *** Org Roam
 **** Dependencies
 #+begin_src emacs-lisp :tangle yes
-    (use-package emacsql
+  (use-package emacsql
     :straight t)
 
   (use-package emacsql-sqlite
