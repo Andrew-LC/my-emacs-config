@@ -1,0 +1,122 @@
+(setq package-enable-at-startup nil)
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+
+(straight-use-package 'use-package)
+
+
+(cd "c://Users//Andrew")
+
+(setq inhibit-startup-message t)
+(scroll-bar-mode -1)
+(tooltip-mode -1)
+(tool-bar-mode -1)
+(set-fringe-mode -1)
+(menu-bar-mode -1)
+(column-number-mode)
+(setq visible-bell 1)
+(electric-pair-mode 1)
+
+(global-display-line-numbers-mode t)
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook
+		dired-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+(set-face-attribute 'default nil :font "MonoLisa Nerd Font Mono" :height 115)
+
+
+(use-package dashboard
+  :straight t
+  :ensure t
+  :init
+  (setq dashboard-center-content t)
+  (setq dashboard-startup-banner 1)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-set-navigator t)
+  :config
+  (dashboard-setup-startup-hook))
+
+(use-package doom-themes
+  :straight t
+  :ensure t
+  :config
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-tomorrow-night t)
+
+  (doom-themes-visual-bell-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+
+(use-package doom-modeline 
+  :straight t
+  :config (doom-modeline-mode 1))
+
+(use-package all-the-icons
+  :straight t
+  :if (display-graphic-p))
+
+
+(use-package evil
+  :straight t
+  :init
+  (setq evil-want-integration t)
+  :config
+  (evil-mode 1)
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal))
+
+(use-package vertico
+  :straight t
+  :ensure t
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)
+         ("C-f" . vertico-exit)
+         :map minibuffer-local-map
+         ("M-h" . backward-kill-word))
+  :custom
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :straight t
+  :init
+  (savehist-mode))
+
+(use-package marginalia
+  :straight t
+  :after vertico
+  :ensure t
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  :init
+  (marginalia-mode))
+
+(use-package orderless
+  :straight t
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
