@@ -1,3 +1,5 @@
+(setq gc-cons-threshold (* 50 1000 1000))
+
 (setq package-enable-at-startup nil)
 
 (defvar bootstrap-version)
@@ -176,10 +178,10 @@
 
 (add-to-list 'load-path "~/.emacs.d/lsp-bridge")
 
-  (require 'lsp-bridge)
-  (global-lsp-bridge-mode)
-  (setq lsp-bridge-enable-diagnostics t)
-  (setq lsp-bridge-enable-hover-diagnostic t)
+(require 'lsp-bridge)
+(global-lsp-bridge-mode)
+(setq lsp-bridge-enable-diagnostics t)
+(setq lsp-bridge-enable-hover-diagnostic t)
 
 (use-package flycheck
     :straight t
@@ -242,19 +244,19 @@
      org-tags-column 0))
 
 (defun efs/org-mode-setup ()
-    (set-fringe-mode 1)
-    (visual-line-mode 1)
-    (org-indent-mode 1)
-    (org-modern-mode 1))
-
-  (straight-use-package 'org)
+      (set-fringe-mode 1)
+      (visual-line-mode 1)
+      (org-indent-mode 1)
+      (org-modern-mode 1))
+  
+    (straight-use-package 'org)
 
 (use-package org
     :straight t
     :hook (org-mode . efs/org-mode-setup)
     :config
     (setq org-default-notes-files (concat org-directory "c://Users//Andrew//Documents//orgnotes//tasks.org"))
-    (efs/org-font-setup))
+        (efs/org-font-setup))
 
 (use-package org-modern
     :straight t)
@@ -266,6 +268,25 @@
 (use-package olivetti
     :straight t
     :hook (org-mode . olivetti-mode))
+
+(with-eval-after-load 'org
+   (org-babel-do-load-languages
+       'org-babel-load-languages
+       '((emacs-lisp . t)
+       (python . t)))
+
+  (push '("conf-unix" . conf-unix) org-src-lang-modes))
+
+
+;; Automatically tangle our Emacs.org config file when we save it
+(defun efs/org-babel-tangle-config ()
+  (when (string-equal (file-name-directory (buffer-file-name))
+                      (expand-file-name user-emacs-directory))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
 
 (use-package emacsql
   :straight t)
@@ -306,3 +327,6 @@
    (org-roam-db-autosync-mode)
    ;; If using org-roam-protocol
    (require 'org-roam-protocol))
+
+;; Make gc pauses faster by decreasing the threshold.
+(setq gc-cons-threshold (* 2 1000 1000))
