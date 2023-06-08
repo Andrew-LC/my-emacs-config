@@ -1,5 +1,12 @@
 (setq gc-cons-threshold (* 50 1000 1000))
 
+(defun zig-run-current-file ()
+  "Execute `zig run` command on the current file."
+  (interactive)
+  (let* ((file-name (buffer-file-name))
+         (command (format "zig run %s" file-name)))
+    (async-shell-command command)))
+
 (setq package-enable-at-startup nil)
 
 (defvar bootstrap-version)
@@ -23,7 +30,7 @@
 (scroll-bar-mode -1)
 (tooltip-mode -1)
 (tool-bar-mode -1)
-(set-fringe-mode -1)
+(setq set-fringe-mode 0)
 (menu-bar-mode -1)
 (column-number-mode)
 (setq visible-bell 1)
@@ -45,34 +52,32 @@
 
 (set-face-attribute 'default nil :font "MonoLisa Nerd Font Mono" :height 115)
 
-(set-frame-parameter (selected-frame) 'alpha '(96 . 96))
-(add-to-list 'default-frame-alist '(alpha . (90 . 90)))
+(set-frame-parameter (selected-frame) 'alpha '(98 . 98))
+(add-to-list 'default-frame-alist '(alpha . (95 . 95)))
 
 (use-package dashboard
     :straight t
     :ensure t
     :init
     (setq dashboard-center-content t)
-    (setq dashboard-startup-banner "~/.emacs.d/logo.png")
+    (setq dashboard-startup-banner "~/.emacs.d/emacs.png")
     (setq dashboard-set-heading-icons t)
     (setq dashboard-set-file-icons t)
     (setq dashboard-set-navigator t)
-    (setq dashboard-items '((recents  . 5)))
+    (setq dashboard-items '(( recents . 5)(agenda . 5)))
     :config
     (dashboard-setup-startup-hook))
 
 (use-package doom-themes
-    :straight t
-    :ensure t
-    :config
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-          doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-tomorrow-night t)
+  :straight t
+  :ensure t
+  :config
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+      doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-tomorrow-night t)
 
-
-    (doom-themes-visual-bell-config)
-    ;; Corrects (and improves) org-mode's native fontification.
-    (doom-themes-org-config))
+  (doom-themes-visual-bell-config)
+  (doom-themes-org-config))
 
 (use-package doom-modeline 
     :straight t
@@ -89,6 +94,29 @@
 
 (use-package highlight-indentation
     :straight t)
+
+(use-package dired-sort-menu
+    :straight t)
+
+(add-hook 'dired-load-hook
+        (lambda () (dired-sort-menu-toggle-dirs-first)))
+
+(use-package treemacs
+ :straight t
+ :ensure t
+ :defer t
+ :config
+ (progn
+    (setq treemacs-collapse-dirs  (if treemacs-python-executable 3 0)
+     treemacs-show-cursor   nil
+    treemacs-show-hidden-files t
+    )
+
+   (treemacs-follow-mode t)
+   (treemacs-filewatch-mode t)
+   (treemacs-fringe-indicator-mode 'always)
+  )
+)
 
 (use-package evil
     :straight t
@@ -111,8 +139,8 @@
   (onepiece/leader-keys
     "t"  '(:ignore t :which-key "toggles")
     "tt" '(load-theme :which-key "choose theme")
-    "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))
-    "i" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/init.el")))
+    "i" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/init.org")))
+    "d" '(lambda () (interactive) (find-file "C:/Users/Andrew/Documents/orgnotes/temp/organize_later.org"))
     "eb" '(eval-buffer :which-key "Evaluate Buffer")
     "v" '(split-window-right :which-key "Split Window Vertically")
     "." '(find-file :which-key "Search files")
@@ -120,7 +148,9 @@
     "o" '(lambda () (interactive) (split-window-below) (other-window 1) (dired-jump))
     "kb" '(kill-buffer :which-key "Kill Buffer")
     "pf" '(projectile-find-file :which-key "Find file using projectile")
-    "ff" '(consult-find :which-key "Find file")
+    "f" '(consult-line :which-key "Search line")
+    "z" '(lambda () (zig-run-current-file) :which-key "Execute the current zig file")
+    "tv" '(treemacs :which-key "treemacs view")
     "j" '(emmet-expand-line :which-key "Emmet Expand")))
 
 (use-package vertico
@@ -162,6 +192,12 @@
   :straight t
   :after vertico)
 
+(use-package projectile
+  :straight t
+  :defer t
+  :config
+  (setq projectile-project-search-path '("~/Documents/projects/" "~/work/" ("~/github" . 1))))
+
 (straight-use-package 'posframe)
 (add-to-list 'load-path "~/.emacs.d/straight/build/posframe")
 
@@ -182,10 +218,11 @@
 (global-lsp-bridge-mode)
 (setq lsp-bridge-enable-diagnostics t)
 (setq lsp-bridge-enable-hover-diagnostic t)
+(setq lsp-bridge-org-babel-lang-list t)
+(setq lsp-bridge-enable-auto-format-code t)
 
 (use-package flycheck
-    :straight t
-    :after lsp-bridge)
+    :straight t :config (global-flycheck-mode))
 
 (use-package typescript-mode
    :straight t
@@ -209,18 +246,22 @@
    (eldoc-mode +1)
    (tide-hl-identifier-mode +1))
 
-(use-package web-mode
-   :straight t
-   :config
-   (setq web-mode-markup-indent-offset 2))
+ (use-package web-mode
+  :straight t
+  :config
+  (setq web-mode-markup-indent-offset 2))
 
- (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
- (add-hook 'web-mode-hook
-           (lambda ()
-             (when (string-equal "tsx" (file-name-extension buffer-file-name))
-               (setup-tide-mode))))
- ;; enable typescript-tslint checker
- (flycheck-add-mode 'typescript-tslint 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+(add-hook 'web-mode-hook
+          (lambda ()
+            (when (string-equal "tsx" (file-name-extension buffer-file-name))
+              (setup-tide-mode))))
+;; enable typescript-tslint checker
+(flycheck-add-mode 'typescript-tslint 'web-mode)
+
+(use-package zig-mode
+  :straight t
+  :mode "\\.zig\\'")
 
 (defun efs/org-font-setup ()
     ;; Replace list hyphen with dot
@@ -244,19 +285,20 @@
      org-tags-column 0))
 
 (defun efs/org-mode-setup ()
-      (set-fringe-mode 1)
-      (visual-line-mode 1)
-      (org-indent-mode 1)
-      (org-modern-mode 1))
+       (set-fringe-mode 1)
+       (setq org-hide-emphasis-markers t)
+       (visual-line-mode 1)
+       (org-indent-mode 1)
+       (org-modern-mode 1))
   
-    (straight-use-package 'org)
+      (straight-use-package 'org)
 
-(use-package org
-    :straight t
-    :hook (org-mode . efs/org-mode-setup)
-    :config
-    (setq org-default-notes-files (concat org-directory "c://Users//Andrew//Documents//orgnotes//tasks.org"))
-        (efs/org-font-setup))
+    (use-package org
+        :straight t
+        :hook (org-mode . efs/org-mode-setup)
+        :config
+        (setq org-default-notes-files (concat org-directory "c://Users//Andrew//Documents//orgnotes//tasks.org"))
+            (efs/org-font-setup))
 
 (use-package org-modern
     :straight t)
@@ -266,25 +308,27 @@
     :hook (org-mode . org-bullets-mode))
 
 (use-package olivetti
-    :straight t
-    :hook (org-mode . olivetti-mode))
+ :straight t
+ :hook (org-mode . olivetti-mode)
+ :init
+ (setq olivetti-set-width 85))
 
 (with-eval-after-load 'org
-   (org-babel-do-load-languages
-       'org-babel-load-languages
-       '((emacs-lisp . t)
-       (python . t)))
+     (org-babel-do-load-languages
+         'org-babel-load-languages
+         '((emacs-lisp . t)
+         (python . t)))
 
-  (push '("conf-unix" . conf-unix) org-src-lang-modes))
+    (push '("conf-unix" . conf-unix) org-src-lang-modes))
 
-
+  
 ;; Automatically tangle our Emacs.org config file when we save it
-(defun efs/org-babel-tangle-config ()
-  (when (string-equal (file-name-directory (buffer-file-name))
-                      (expand-file-name user-emacs-directory))
-    ;; Dynamic scoping to the rescue
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
+  (defun efs/org-babel-tangle-config ()
+    (when (string-equal (file-name-directory (buffer-file-name))
+                        (expand-file-name user-emacs-directory))
+      ;; Dynamic scoping to the rescue
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-tangle))))
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
 
@@ -327,6 +371,16 @@
    (org-roam-db-autosync-mode)
    ;; If using org-roam-protocol
    (require 'org-roam-protocol))
+
+(use-package org-roam-ui
+  :straight
+    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+    :after org-roam
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
 
 ;; Make gc pauses faster by decreasing the threshold.
 (setq gc-cons-threshold (* 2 1000 1000))
